@@ -1,10 +1,13 @@
 package org.demo.maven.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
  * API配置主模型
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ApiConfig {
     private Info info;
     private GitConfig git;
@@ -214,6 +217,7 @@ public class ApiConfig {
         }
 
         public static class SchemaRef {
+            @JsonProperty("$ref")
             private String $ref;
 
             public String get$ref() {
@@ -346,6 +350,7 @@ public class ApiConfig {
         }
 
         public static class ContentConfig {
+            @JsonProperty("application/json")
             private ApplicationJsonConfig applicationJson;
 
             public ApplicationJsonConfig getApplicationJson() {
@@ -406,6 +411,7 @@ public class ApiConfig {
         }
 
         public static class ContentConfig {
+            @JsonProperty("application/json")
             private ApplicationJsonConfig applicationJson;
 
             public ApplicationJsonConfig getApplicationJson() {

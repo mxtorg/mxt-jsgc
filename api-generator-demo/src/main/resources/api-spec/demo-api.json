@@ -1,0 +1,177 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "info": {
+    "title": "Demo",
+    "description": "API Demo Service",
+    "version": "1.0.0"
+  },
+  "git": {
+    "url": "https://github.com/demo/demo-api",
+    "branch": "main",
+    "token": "ghp_1234567890abcdef1234567890abcdef12345678"
+  },
+  "gav": {
+    "gav": "org.demo.cloud:demo-api:1.0.0-SNAPSHOT",
+    "pkg": "org.demo.cloud",
+    "repository": [
+      {
+        "url": "https://nexus.example.com/repository/maven-releases/"
+      }
+    ]
+  },
+  "paths": {
+    "/users/instance": {
+      "schema": {
+        "$ref": "#/components/schemas/DemoEndpoint"
+      },
+      "post": {
+        "summary": "Register a new user",
+        "request": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "parameters": [
+                  {
+                    "name": "id",
+                    "schema": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a user",
+        "request": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get user by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DemoEndpoint": {
+        "type": "object",
+        "description": "Demo端点"
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "description": "注册请求体",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "username",
+          "email",
+          "password"
+        ]
+      },
+      "UserUpdateRequest": {
+        "type": "object",
+        "description": "用户更新请求体",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "username",
+          "email",
+          "password"
+        ]
+      },
+      "UserResponse": {
+        "type": "object",
+        "description": "用户响应体",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
