@@ -1,0 +1,20 @@
+- [x] Checkpoint 1: Maven插件项目结构已创建，包含pom.xml和src目录
+- [x] Checkpoint 2: pom.xml包含所有必要依赖（swagger-parser, javapoet, maven-invoker, spring-web等）
+- [x] Checkpoint 3: TypeMapper工具类实现，支持string/email/integer/boolean/array/object类型映射
+- [x] Checkpoint 4: NamingUtil工具类实现，支持首字母大写转换
+- [x] Checkpoint 5: DtoGenerator实现，生成带JSR-303校验注解的POJO类
+- [x] Checkpoint 6: ControllerGenerator实现，生成带Spring MVC注解的Controller类
+- [x] Checkpoint 7: FeignClientGenerator实现，生成@FeignClient接口
+- [x] Checkpoint 8: MarkdownDocGenerator实现，生成api-docs.md文档
+- [x] Checkpoint 9: SwaggerUIConfigGenerator实现，生成application-swagger.yml配置
+- [x] Checkpoint 10: WireMockStubGenerator实现，生成WireMockStubs.java类
+- [x] Checkpoint 11: CamundaDmnGenerator实现，生成api-model.dmn文件
+- [x] Checkpoint 12: DroolsRuleGenerator实现，生成api-rules.drl文件
+- [x] Checkpoint 13: ApiPackager实现，支持生成pom.xml和Maven打包部署
+- [x] Checkpoint 14: ApiGeneratorMojo实现，作为插件入口协调所有生成器
+- [x] Checkpoint 15: 项目能成功编译
+- [ ] Checkpoint 16: 插件能正确解析JSON配置文件
+- [ ] Checkpoint 17: 生成的DTO类包含@JsonIgnoreProperties和JSR-303注解
+- [ ] Checkpoint 18: 生成的Controller类包含@RestController和正确的HTTP映射注解
+- [ ] Checkpoint 19: 生成的FeignClient接口方法签名与Controller一致
+- [ ] Checkpoint 20: 所有预期输出文件（DTO、Controller、FeignClient、文档、配置）正确生成
