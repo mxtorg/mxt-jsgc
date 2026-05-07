@@ -1,0 +1,6 @@
+{
+  "generatedAt" : "2026-05-08T07:23:26+08:00",
+  "configMd5" : "3c5bf0d662960ee7a85cdd4314692f28",
+  "generatedFiles" : [ "dto-generator output", "controller-generator output", "feign-generator output" ],
+  "generatorVersion" : "1.0.0"
+}

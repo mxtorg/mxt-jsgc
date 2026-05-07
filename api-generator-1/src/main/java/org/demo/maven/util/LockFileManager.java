@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.File;
@@ -23,10 +24,11 @@ import java.util.List;
  */
 public class LockFileManager {
 
-    private static final String LOCK_FILE_NAME = ".api-generator.lock";
+    private static final String LOCK_FILE_NAME = ".cgp.lock";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     static {
+        OBJECT_MAPPER.registerModule(new JavaTimeModule());
         OBJECT_MAPPER.enable(SerializationFeature.INDENT_OUTPUT);
         OBJECT_MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
