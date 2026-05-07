@@ -26,7 +26,6 @@ public class DemoEndpoint {
     )
     public Long postUsersInstance(@RequestBody RegisterRequest request) {
         // todo 实现业务逻辑
-        log.info("Register a new user，入参: {}", request);
         return 1L;
     }
 
@@ -36,7 +35,6 @@ public class DemoEndpoint {
     )
     public UserResponse putUsersInstance(@RequestBody UserUpdateRequest request) {
         // todo 实现业务逻辑
-        log.info("Update a user，入参: {}", request);
         return new UserResponse();
     }
 
@@ -46,7 +44,6 @@ public class DemoEndpoint {
     )
     public UserResponse getUsersInstance(@RequestParam("id") Long id) {
         // todo 实现业务逻辑
-        log.info("Get user by ID，入参: {}", id);
         return new UserResponse();
     }
 }

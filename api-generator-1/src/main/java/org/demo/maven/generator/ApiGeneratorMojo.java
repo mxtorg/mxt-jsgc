@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * API代码生成Maven插件主入口
  */
-@Mojo(name = "generate-api-code", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@Mojo(name = "generate-api-code", defaultPhase = LifecyclePhase.INITIALIZE/*.GENERATE_SOURCES*/)
 public class ApiGeneratorMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project.basedir}/src/main/resources/api-spec", property = "specDir")

@@ -192,7 +192,7 @@ public class ControllerGenerator implements CodeGenerator {
         // 添加方法体
         String summary = operationConfig.getSummary() != null ? operationConfig.getSummary() : "处理请求";
         methodBuilder.addComment("todo 实现业务逻辑")
-                .addStatement("log.info($S, $L)", summary + "，入参: {}", paramNames.toString())
+                //.addStatement("log.info($S, $L)", summary + "，入参: {}", paramNames.toString())
                 .addStatement("return $L", getDefaultValue(returnType));
 
         return methodBuilder.build();
