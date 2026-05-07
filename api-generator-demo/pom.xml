@@ -113,6 +113,7 @@
                 <configuration>
                     <specDir>src/main/resources/api-spec</specDir>
                     <outputJavaDir>src/main/java</outputJavaDir>
+                    <skipGitPush>true</skipGitPush>
                 </configuration>
             </plugin>
         </plugins>

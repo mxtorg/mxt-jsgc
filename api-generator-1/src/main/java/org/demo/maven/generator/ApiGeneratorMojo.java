@@ -3,15 +3,19 @@ package org.demo.maven.generator;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.demo.maven.exception.GeneratorException;
 import org.demo.maven.model.ApiConfig;
+import org.demo.maven.util.GitHubRepoManager;
+import org.demo.maven.util.LockFileManager;
 import org.demo.maven.util.OpenApiUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -19,8 +23,10 @@ import java.util.List;
 /**
  * API代码生成Maven插件主入口
  */
-@Mojo(name = "generate-api-code", defaultPhase = LifecyclePhase.INITIALIZE/*.GENERATE_SOURCES*/)
+@Mojo(name = "generate-api-code", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class ApiGeneratorMojo extends AbstractMojo {
+
+    private static final String GENERATOR_VERSION = "1.0.0";
 
     @Parameter(defaultValue = "${project.basedir}/src/main/resources/api-spec", property = "specDir")
     private File specDir;
@@ -36,6 +42,18 @@ public class ApiGeneratorMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "false", property = "skipIfExists")
     private boolean skipIfExists;
+
+    @Parameter(defaultValue = "false", property = "skipLockCheck")
+    private boolean skipLockCheck;
+
+    @Parameter(defaultValue = "false", property = "skipGitPush")
+    private boolean skipGitPush;
+
+    @Parameter(defaultValue = "false", property = "skipMavenDeploy")
+    private boolean skipMavenDeploy;
+
+    @Parameter(defaultValue = "${project}", readonly = true)
+    private org.apache.maven.project.MavenProject project;
 
     private final List<CodeGenerator> generators = new ArrayList<>();
 
@@ -54,13 +72,11 @@ public class ApiGeneratorMojo extends AbstractMojo {
         getLog().info("[API-Generator] 开始执行代码生成...");
 
         try {
-            // 检查配置目录
             if (!specDir.exists()) {
                 getLog().warn("[API-Generator] 配置目录不存在: " + specDir.getAbsolutePath());
                 return;
             }
 
-            // 加载配置文件
             List<File> specFiles = loadSpecFiles();
             if (specFiles.isEmpty()) {
                 getLog().warn("[API-Generator] 没有找到JSON配置文件");
@@ -69,9 +85,16 @@ public class ApiGeneratorMojo extends AbstractMojo {
 
             getLog().info("[API-Generator] 找到 " + specFiles.size() + " 个配置文件");
 
-            // 处理每个配置文件
+            Path projectDir = project.getBasedir().toPath();
             for (File specFile : specFiles) {
-                processSpecFile(specFile);
+                if (!skipLockCheck && !needRegenerate(projectDir, specFile)) {
+                    getLog().info("[API-Generator] 代码已是最新，无需生成: " + specFile.getName());
+                    continue;
+                }
+                List<String> generatedFiles = processSpecFile(specFile);
+                if (!generatedFiles.isEmpty()) {
+                    updateLockFile(projectDir, specFile, generatedFiles);
+                }
             }
 
             getLog().info("[API-Generator] 代码生成完成");
@@ -80,6 +103,22 @@ public class ApiGeneratorMojo extends AbstractMojo {
             getLog().error("[API-Generator] 代码生成失败", e);
             throw new MojoExecutionException("代码生成失败", e);
         }
+    }
+
+    private boolean needRegenerate(Path projectDir, File specFile) {
+        String configMd5 = LockFileManager.calculateFileMd5(specFile);
+        return LockFileManager.shouldRegenerate(projectDir, configMd5, GENERATOR_VERSION);
+    }
+
+    private void updateLockFile(Path projectDir, File specFile, List<String> generatedFiles) {
+        String configContent;
+        try {
+            configContent = java.nio.file.Files.readString(specFile.toPath());
+        } catch (IOException e) {
+            getLog().warn("[API-Generator] 读取配置文件失败: " + e.getMessage());
+            configContent = specFile.getName();
+        }
+        LockFileManager.updateLockFile(projectDir, configContent, generatedFiles, GENERATOR_VERSION);
     }
 
     private List<File> loadSpecFiles() {
@@ -97,13 +136,11 @@ public class ApiGeneratorMojo extends AbstractMojo {
         return files;
     }
 
-    private void processSpecFile(File specFile) throws GeneratorException, IOException {
+    private List<String> processSpecFile(File specFile) throws GeneratorException, IOException {
         getLog().info("[API-Generator] 处理配置文件: " + specFile.getName());
 
-        // 解析配置文件
         ApiConfig config = OpenApiUtil.parse(specFile);
 
-        // 验证配置
         List<String> errors = OpenApiUtil.validate(config);
         if (!errors.isEmpty()) {
             for (String error : errors) {
@@ -112,25 +149,36 @@ public class ApiGeneratorMojo extends AbstractMojo {
             throw new GeneratorException("配置文件验证失败");
         }
 
-        // 确保输出目录存在
         if (!outputJavaDir.exists()) {
             outputJavaDir.mkdirs();
         }
 
-        // 执行各生成器
+        List<String> generatedFiles = new ArrayList<>();
         for (CodeGenerator generator : generators) {
             getLog().info("[API-Generator] 执行生成器: " + generator.getName());
             generator.generate(config, outputJavaDir);
+            generatedFiles.add(generator.getName() + " output");
         }
 
-        // TODO: Git操作（如果需要）
-        if (!skipGit) {
-            getLog().info("[API-Generator] Git操作（待实现）");
+        if (!skipGitPush && config.getGit() != null) {
+            pushToGitHub(config);
         }
 
-        // TODO: Maven部署（如果需要）
-        if (!skipDeploy) {
+        if (!skipMavenDeploy && !skipDeploy) {
             getLog().info("[API-Generator] Maven部署（待实现）");
+        }
+
+        return generatedFiles;
+    }
+
+    private void pushToGitHub(ApiConfig config) {
+        try {
+            GitHubRepoManager gitHubManager = new GitHubRepoManager();
+            gitHubManager.connectWithConfig(config.getGit());
+            gitHubManager.pushCode(project.getBasedir().getAbsolutePath(), config.getGit().getBranch());
+            getLog().info("[API-Generator] GitHub推送完成");
+        } catch (GeneratorException e) {
+            getLog().warn("[API-Generator] GitHub推送失败: " + e.getMessage());
         }
     }
 
@@ -153,5 +201,17 @@ public class ApiGeneratorMojo extends AbstractMojo {
 
     public void setSkipIfExists(boolean skipIfExists) {
         this.skipIfExists = skipIfExists;
+    }
+
+    public void setSkipLockCheck(boolean skipLockCheck) {
+        this.skipLockCheck = skipLockCheck;
+    }
+
+    public void setSkipGitPush(boolean skipGitPush) {
+        this.skipGitPush = skipGitPush;
+    }
+
+    public void setSkipMavenDeploy(boolean skipMavenDeploy) {
+        this.skipMavenDeploy = skipMavenDeploy;
     }
 }
